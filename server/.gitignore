@@ -1,0 +1,54 @@
+# Python-related
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+*.venv
+env/
+venv/
+ENV/
+VENV/
+.Python
+
+# Flask-related
+instance/
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+.env.*
+
+# Log files
+*.log
+logs/
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Pytest cache
+.pytest_cache/
+
+# IDEs/Editors
+.vscode/
+.idea/
+*.sublime-workspace
+
+# OS-generated
+.DS_Store
+Thumbs.db
+
+# SocketIO compiled static files (if using flask-socketio)
+*.static/
+
+# Deployment files
+*.pid
