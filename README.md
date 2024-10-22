@@ -22,5 +22,8 @@ python app.py
 navigate to client in vscode
 
 run 
+
 npm i
+
+
 npm run dev
