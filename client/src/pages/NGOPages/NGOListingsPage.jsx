@@ -28,7 +28,6 @@ const NGOListingsPage = () => {
 
     useEffect(() => {
         const { longitude, latitude } = user;
-        console.log(user)
         const ngoId = user._id;
 
         const fetchNearbyListings = async () => {
@@ -82,6 +81,7 @@ const NGOListingsPage = () => {
                 name: listing.name,
                 quantity: listing.quantity,
                 expiry: listing.expiry,
+                food_type: listing.food_type,
                 restaurant_id: String(listing.restaurantId),
                 restaurant_name: listing.restaurantName,
                 view: 'not blocked'

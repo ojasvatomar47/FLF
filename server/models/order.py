@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, DateTimeField, EmbeddedDocument, EmbeddedDocumentField, ListField, ReferenceField, EnumField, IntField
+from mongoengine import Document, StringField, DateTimeField, EmbeddedDocument, EmbeddedDocumentField, ListField, ReferenceField, IntField
 from datetime import datetime, timedelta
 from models.listing import Listing  # Import the Listing model
 from models.user import User  # Import the User model
@@ -11,6 +11,7 @@ class ListingDetail(EmbeddedDocument):
     restaurant_id = ReferenceField(User, required=True)  # Reference to User model for restaurant
     restaurant_name = StringField(required=True)
     view = StringField(choices=['blocked', 'not blocked'], default='not blocked')
+    food_type = StringField(required=True, choices=['Vegetarian', 'Non-Vegetarian', 'Vegan', 'other'])  # Add food type
     created_at = DateTimeField(default=datetime.utcnow)
 
 class Order(Document):
@@ -24,13 +25,11 @@ class Order(Document):
     ngo_review = StringField(default='')
     created_at = DateTimeField(default=datetime.utcnow)
 
-
     meta = {
         'collection': 'orders'  # Explicitly set the collection name
     }
-    
 
-    # Pre-save hook equivalent in Flask for auto-decline and auto-dismiss
+    # Pre-save hook for auto-decline and auto-dismiss
     def clean(self):
         two_hours_ago = datetime.utcnow() - timedelta(hours=2)
 

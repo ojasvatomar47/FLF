@@ -24,7 +24,8 @@ def create_order():
                 'expiry': item.get('expiry'),
                 'restaurant_id': str(ObjectId(item['restaurant_id'])),  # Convert ObjectId to string
                 'restaurant_name': item.get('restaurant_name'),
-                'view': item.get('view')
+                'view': item.get('view'),
+                'food_type': item.get('food_type')
             }
             listings_details.append(listing_detail)
 
@@ -38,8 +39,8 @@ def create_order():
 
         # Save the new order
         new_order.save()
-
-
+        
+        
          # Fetch the saved order to verify
         saved_order = Order.objects.get(id=new_order.id)
         print("\n--- Saved Order Details ---")
