@@ -123,10 +123,14 @@ const NGOListingsPage = () => {
                                     {listing.name}
                                 </h2>
                                 <div className={`mt-4 p-2 h-12 rounded-sm w-full ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-4">
                                         <div className="flex flex-col gap-1">
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Quantity</span>
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold`}>{listing.quantity} kgs</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Food Type</span>
+                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold`}>{listing.food_type}</span>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Expiry</span>

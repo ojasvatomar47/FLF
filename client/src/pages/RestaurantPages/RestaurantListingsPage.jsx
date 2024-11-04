@@ -170,7 +170,7 @@ const RestaurantListingsPage = () => {
       {showFeedback && <div className={`feedback text-white`}>{feedback}</div>}
       <div className="mb-8">
         <h1 className={`text-2xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>Add New Listing</h1>
-        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-4 gap-4">
           <input
             type="text"
             placeholder="Name"
@@ -208,7 +208,7 @@ const RestaurantListingsPage = () => {
           </select>
           <button
             onClick={handleAddListing}
-            className={`sm:col-span-1 md:col-span-3 p-2 bg-blue-500 text-white rounded-md relative ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            className={`sm:col-span-1 md:col-span-4 p-2 bg-blue-500 text-white rounded-md relative ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
           >
             {buttonText || 'Add'}
             {buttonText && <div className="overlay"></div>}
@@ -229,7 +229,7 @@ const RestaurantListingsPage = () => {
               {listing.name}
             </h2>
             <div className={`mt-4 p-2 rounded-sm w-full ${isDarkMode ? 'text-gray-300 bg-gray-600' : 'text-gray-800 bg-gray-100'}`}>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="flex flex-col gap-1">
                   <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                     Quantity
@@ -276,7 +276,7 @@ const RestaurantListingsPage = () => {
               Close
             </button>
             <h2 className={`text-xl font-semibold mb-4`}>Update Listing</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <input
                 type="text"
                 placeholder="Name"
@@ -311,7 +311,7 @@ const RestaurantListingsPage = () => {
                 <option value="Non-Vegetarian">Non-Vegetarian</option>
                 <option value="Vegan">Vegan</option>
               </select>
-              <button onClick={handleUpdateListing} className={`col-span-3 p-2 bg-blue-500 text-white rounded-md`}>
+              <button onClick={handleUpdateListing} className={`col-span-4 p-2 bg-blue-500 text-white rounded-md`}>
                 Update
               </button>
             </div>
