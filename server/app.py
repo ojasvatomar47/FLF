@@ -46,6 +46,7 @@ from routes.order_routes import order_bp
 from routes.listing_routes import listing_bp
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
+from routes.recommendation_routes import recommendations_bp
 from models.chat import Chat  # Import the Chat model
 
 # Register blueprints
@@ -53,6 +54,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(order_bp)
 app.register_blueprint(listing_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(recommendations_bp)
 
 # Socket.IO Events
 @socketio.on('connect')
