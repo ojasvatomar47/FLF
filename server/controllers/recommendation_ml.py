@@ -4,6 +4,8 @@ from flask import jsonify
 import numpy as np
 from utils.data_preparation import create_user_item_matrix
 from utils.matrix_factorization import train_collaborative_filtering_model
+from models.user import User
+from utils.graph_utils import generate_order_count_graph
 
 def get_ml_recommendations(ngo_id):
     # Create the user-item matrix and map of NGO IDs
@@ -52,3 +54,17 @@ def get_ml_recommendations(ngo_id):
     ]
     
     return jsonify(response), 200
+
+
+def get_order_counts_graph():
+    # Fetch all NGOs
+    ngos = User.objects(user_type="Charity/NGO")
+
+    ngo_ids = [str(ngo.id) for ngo in ngos]
+    vegorders = [ngo.vegorders for ngo in ngos]
+    veganorders = [ngo.veganorders for ngo in ngos]
+    nonvegorders = [ngo.nonvegorders for ngo in ngos]
+
+    # Generate the graph
+    graph_path = generate_order_count_graph(vegorders, veganorders, nonvegorders, ngo_ids)
+    return graph_path

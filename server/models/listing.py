@@ -9,9 +9,15 @@ class Listing(db.Document):
     quantity = db.IntField(required=True)
     expiry = db.IntField(required=True, choices=[1, 2, 3, 480])  # Expiry in hours
     view = db.StringField(choices=['blocked', 'not blocked'], default='not blocked')
-    food_type = db.StringField(required=True)  # New field for type of food
+    food_type = db.StringField(required=True)
     created_at = db.DateTimeField(default=datetime.utcnow)
-    expires_at = db.DateTimeField(default=lambda: datetime.utcnow() + timedelta(hours=1))  # Default to 1 hour from now
+    expires_at = db.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        # Set expires_at based on expiry hours
+        if self.expiry:
+            self.expires_at = datetime.utcnow() + timedelta(hours=self.expiry)
+        super(Listing, self).save(*args, **kwargs)
 
     meta = {
         'collection': 'listings',
