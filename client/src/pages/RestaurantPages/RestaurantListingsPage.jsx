@@ -27,10 +27,12 @@ const RestaurantListingsPage = () => {
   const [newName, setNewName] = useState('');
   const [newQuantity, setNewQuantity] = useState('');
   const [newExpiry, setNewExpiry] = useState('');
+  const [newFoodType, setNewFoodType] = useState('');
 
   const [selectedName, setSelectedName] = useState('');
   const [selectedQuantity, setSelectedQuantity] = useState('');
   const [selectedExpiry, setSelectedExpiry] = useState('');
+  const [selectedFoodType, setSelectedFoodType] = useState('');
 
   const [listings, setListings] = useState([]);
   const [feedback, setFeedback] = useState('');
@@ -63,6 +65,7 @@ const RestaurantListingsPage = () => {
         name: newName,
         quantity: parseInt(newQuantity),
         expiry: parseInt(newExpiry),
+        food_type: newFoodType,
         view: "not blocked",
         image: CardImage,
       };
@@ -71,6 +74,7 @@ const RestaurantListingsPage = () => {
       setNewName('');
       setNewQuantity('');
       setNewExpiry('');
+      setNewFoodType('');
       setFeedback('Listing added successfully.');
       setShowFeedback(true);
     } catch (error) {
@@ -106,6 +110,7 @@ const RestaurantListingsPage = () => {
   const handleOpenUpdateModal = (listing) => {
     setSelectedListing(listing);
     setSelectedName(listing.name);
+    setSelectedFoodType(listing.food_type);
     setSelectedQuantity(listing.quantity.toString());
     setSelectedExpiry(listing.expiry.toString());
     setShowUpdateModal(true);
@@ -123,6 +128,7 @@ const RestaurantListingsPage = () => {
         const updatedListing = {
           ...selectedListing,
           name: selectedName,
+          food_type: selectedFoodType,
           quantity: parseInt(selectedQuantity),
           expiry: parseInt(selectedExpiry),
         };
@@ -131,18 +137,19 @@ const RestaurantListingsPage = () => {
         console.log(selectedListing._id)
         console.log("Updated Listing")
         console.log(updatedListing)
-        
+
         const response = await axios.put(`http://127.0.0.1:8800/listings/${selectedListing._id}`, updatedListing);
-        
+
         const updatedListings = listings.map((listing) =>
           listing._id === response.data._id ? response.data : listing
-      );
+        );
 
         setListings(updatedListings);
         setShowUpdateModal(false);
         setSelectedListing(null);
         setSelectedName('');
         setSelectedQuantity('');
+        setSelectedFoodType('');
         setSelectedExpiry('');
         setFeedback('Listing updated successfully.');
         setShowFeedback(true);
@@ -188,6 +195,17 @@ const RestaurantListingsPage = () => {
             <option value="2">2 hrs</option>
             <option value="3">3 hrs</option>
           </select>
+
+          <select
+            value={newFoodType}
+            onChange={(e) => setNewFoodType(e.target.value)}
+            className={`p-2 border rounded-md ${isDarkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 bg-white'}`}
+          >
+            <option value="">Select Food Type</option>
+            <option value="Vegetarian">Vegetarian</option>
+            <option value="Non-Vegetarian">Non-Vegetarian</option>
+            <option value="Vegan">Vegan</option>
+          </select>
           <button
             onClick={handleAddListing}
             className={`sm:col-span-1 md:col-span-3 p-2 bg-blue-500 text-white rounded-md relative ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
@@ -226,6 +244,14 @@ const RestaurantListingsPage = () => {
                   </span>
                   <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                     {listing.expiry} hr
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className={`text-xs font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    Food Type
+                  </span>
+                  <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {listing.food_type}
                   </span>
                 </div>
               </div>
@@ -274,6 +300,16 @@ const RestaurantListingsPage = () => {
                 <option value="1">1 hr</option>
                 <option value="2">2 hrs</option>
                 <option value="3">3 hrs</option>
+              </select>
+              <select
+                value={selectedFoodType}
+                onChange={(e) => setSelectedFoodType(e.target.value)}
+                className={`p-2 border rounded-md`}
+              >
+                <option value="">Select Food Type</option>
+                <option value="Vegetarian">Vegetarian</option>
+                <option value="Non-Vegetarian">Non-Vegetarian</option>
+                <option value="Vegan">Vegan</option>
               </select>
               <button onClick={handleUpdateListing} className={`col-span-3 p-2 bg-blue-500 text-white rounded-md`}>
                 Update

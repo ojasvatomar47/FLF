@@ -6,6 +6,7 @@ from bson import ObjectId
 from datetime import datetime
 import random
 import string
+from models.user import User  # Import the User model
 
 def create_order():
     data = request.json
@@ -14,7 +15,7 @@ def create_order():
         restaurant_id = data.get('restaurantId')
         ngo_id = data.get('ngoId')
         listings_data = data.get('listings')
-        
+
         listings_details = []
         for item in listings_data:
             listing_detail = {
@@ -29,6 +30,17 @@ def create_order():
             }
             listings_details.append(listing_detail)
 
+        # Update NGO food type count based on listings
+        ngo_user = User.objects.get(id=ObjectId(ngo_id))
+        for item in listings_data:
+            food_type = item.get('food_type')
+            if food_type == 'Vegetarian':
+                ngo_user.update(inc__vegorders=1)
+            elif food_type == 'Vegan':
+                ngo_user.update(inc__veganorders=1)
+            elif food_type == 'Non-Vegetarian':
+                ngo_user.update(inc__nonvegorders=1)
+
         # Create a new Order object
         new_order = Order(
             restaurant_id=ObjectId(restaurant_id),  # Convert restaurantId to ObjectId
@@ -40,13 +52,11 @@ def create_order():
         # Save the new order
         new_order.save()
         
-        
          # Fetch the saved order to verify
         saved_order = Order.objects.get(id=new_order.id)
         print("\n--- Saved Order Details ---")
         print(saved_order.to_json())  # This will show what has been save
 
-        
         # Prepare response data
         response_data = {
             "_id": str(new_order.id),  # Convert ObjectId to string
@@ -67,7 +77,6 @@ def create_order():
             "status": "failure",
             "error": str(e)
         }), 500
-
 
 def get_orders_by_restaurant():
     try:

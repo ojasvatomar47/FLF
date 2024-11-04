@@ -18,6 +18,9 @@ def serialize_user(user):
         "latitude": user.latitude,
         "longitude": user.longitude,
         "locationName": user.location_name,
+        "vegOrders": user.vegorders if user.user_type == 'Charity/NGO' else None,
+        "veganOrders": user.veganorders if user.user_type == 'Charity/NGO' else None,
+        "nonVegOrders": user.nonvegorders if user.user_type == 'Charity/NGO' else None,
         "createdAt": user.created_at.isoformat() if user.created_at else None,
         "updatedAt": user.updated_at.isoformat() if user.updated_at else None
     }
@@ -41,6 +44,11 @@ def register_user(data):
         # Hash password
         hashed_password = generate_password_hash(password, method='sha256')
 
+        # Initialize order counters for NGOs
+        vegorders = 0 if user_type == 'Charity/NGO' else None
+        veganorders = 0 if user_type == 'Charity/NGO' else None
+        nonvegorders = 0 if user_type == 'Charity/NGO' else None
+
         # Create new user
         new_user = User(
             username=username,
@@ -50,7 +58,10 @@ def register_user(data):
             verification_code=verification_code,
             latitude=latitude,
             longitude=longitude,
-            location_name=location_name
+            location_name=location_name,
+            vegorders=vegorders,
+            veganorders=veganorders,
+            nonvegorders=nonvegorders
         )
 
         # Save user to DB
@@ -85,7 +96,7 @@ def login_user(data):
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         }, 'secretkey', algorithm='HS256')
 
-        # Set the token in a cookie (similar to res.cookie in Express)
+        # Set the token in a cookie
         response = make_response(jsonify({
             "message": "User logged in successfully",
             "user": serialize_user(user)  # Send the serialized user object

@@ -233,6 +233,7 @@ const NGOTransactionsPage = () => {
                                 <li key={index} className="mb-2">
                                     <span className="font-semibold">Name:</span> {listing.name},
                                     <span className="ml-2 font-semibold">Quantity:</span> {listing.quantity} kgs,
+                                    <span className="ml-2 font-semibold">Food Type:</span> {listing.food_type}, 
                                     <span className="ml-2 font-semibold">Expiry:</span> {listing.expiry} hr
                                 </li>
                             ))}

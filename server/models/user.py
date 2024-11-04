@@ -14,6 +14,11 @@ class User(db.Document):
     location_name = db.StringField()
     created_at = db.DateTimeField(default=datetime.utcnow)
     updated_at = db.DateTimeField(default=datetime.utcnow)
+    
+    # New fields for tracking NGO orders by food type
+    vegorders = db.IntField(default=0)
+    veganorders = db.IntField(default=0)
+    nonvegorders = db.IntField(default=0)
 
     meta = {
         'collection': 'users'
