@@ -8,6 +8,7 @@ const NGOListingsPage = () => {
     const [selectedListings, setSelectedListings] = useState([]);
     const [restaurants, setRestaurants] = useState([]);
     const [recommendedItems, setRecommendedItems] = useState([]);
+    const [cbfItems, setCbfItems] = useState([]);
     const { isDarkMode } = useDarkMode();
 
     const imageUrls = [
@@ -63,10 +64,21 @@ const NGOListingsPage = () => {
             }
         };
 
-        console.log(recommendedItems)
+        const fetchCbfRecommendations = async () => {
+            try {
+                const response = await axios.get(`http://127.0.0.1:8800/content-based-recommendations`, {
+                    params: { ngo_id: user._id },
+                });
+                setCbfItems(response.data.recommendations);
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        };
+
 
         fetchNearbyListings();
         fetchRecommendations();
+        fetchCbfRecommendations();
     }, [user]);
 
     const handleSelect = (listing) => {
@@ -84,9 +96,9 @@ const NGOListingsPage = () => {
         }
 
         try {
-            console.log('Recommended Items: ', recommendedItems);
+            console.log('Recommended Items: ', selectedListings);
 
-            const listingsData = recommendedItems.map((listing) => ({
+            const listingsData = selectedListings.map((listing) => ({
                 listing: String(listing._id),
                 name: listing.name,
                 quantity: listing.quantity,
@@ -99,7 +111,48 @@ const NGOListingsPage = () => {
             console.log('Listing Data: ', listingsData);
 
             const orderData = {
-                restaurantId: String(recommendedItems[0].restaurant_id),
+                restaurantId: String(selectedListings[0].restaurant_id),
+                ngoId: String(user._id),
+                listings: listingsData
+            };
+
+            console.log('Order Data:', orderData);
+
+            const response = await axios.post('http://127.0.0.1:8800/orders', orderData);
+
+            if (response.status === 201) {
+                alert('Order requested successfully!');
+                setSelectedListings([]);
+            }
+        } catch (error) {
+            console.error('Error creating order:', error);
+            alert('Failed to create order. Please try again.');
+        }
+    };
+
+    const handleCbfRecommendedItemsRequest = async () => {
+        if (cbfItems.length === 0) {
+            alert('Please select at least one listing to request.');
+            return;
+        }
+
+        try {
+            console.log('Content Based Filtered Items: ', selectedListings);
+
+            const listingsData = selectedListings.map((listing) => ({
+                listing: String(listing._id),
+                name: listing.name,
+                quantity: listing.quantity,
+                expiry: listing.expiry,
+                food_type: listing.food_type,
+                restaurant_id: String(listing.restaurant_id),
+                restaurant_name: listing.restaurant_name,
+                view: 'not blocked'
+            }));
+            console.log('Listing Data: ', listingsData);
+
+            const orderData = {
+                restaurantId: String(selectedListings[0].restaurant_id),
                 ngoId: String(user._id),
                 listings: listingsData
             };
@@ -199,6 +252,46 @@ const NGOListingsPage = () => {
                     ))}
                 </div>
                 <button onClick={handleRecommendedItemsRequest} className={`mt-4 p-2 text-xs md:text-md bg-blue-700 text-white rounded-md ${isDarkMode ? 'w-14 h-8' : 'w-19 h-10'}`}>
+                    Request
+                </button>
+            </div>
+            <div className='mb-8'>
+                <h2 className={`text-md md:text-xl text-center font-bold border-2 border-gray-800 rounded-lg uppercase mb-4 ${isDarkMode ? 'text-white bg-gray-500' : 'text-black bg-gray-300'}`}>
+                    Content Based Filtered Items
+                </h2>
+                <div className="flex overflow-x-auto">
+                    {cbfItems.map((listing, idx) => (
+                        <div key={idx} className="card mr-4 md:min-w-[250px] min-w-[150px]">
+                            <img src={imageUrls[idx % 10]} alt={listing.name} className="object-cover w-full h-32 md:h-48 sm:w-auto sm:max-w-full" />
+                            <h2 className={`text-md md:text-lg font-semibold mt-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
+                                {listing.name}
+                            </h2>
+                            <div className={`mt-4 p-2 h-12 rounded-sm w-full ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-300 text-gray-600'}`}>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Quantity</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.quantity} kgs</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Food Type</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.food_type}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Expiry</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.expiry} hr</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleSelect(listing)}
+                                className={`mt-4 p-2 text-xs md:text-md ${isDarkMode ? 'bg-blue-700' : 'bg-blue-700'} text-white rounded-md`}
+                            >
+                                {selectedListings.some((item) => item.name === listing.name) ? 'Unselect' : 'Select'}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                <button onClick={handleCbfRecommendedItemsRequest} className={`mt-4 p-2 text-xs md:text-md bg-blue-700 text-white rounded-md ${isDarkMode ? 'w-14 h-8' : 'w-19 h-10'}`}>
                     Request
                 </button>
             </div>
