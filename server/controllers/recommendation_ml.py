@@ -39,7 +39,16 @@ def get_ml_recommendations(ngo_id):
     for listing in listings:
         if listing.food_type in food_type_scores:
             score = food_type_scores[listing.food_type]
-            scored_listings.append((listing, score))
+            
+            # Fetch the restaurant name using restaurant_id from the Users collection
+            try:
+                restaurant = User.objects(id=listing.restaurant_id.id).first()
+                restaurant_name = restaurant.username if restaurant else "Unknown"
+            except Exception as e:
+                print(f"Database query error: {e}")
+                restaurant_name = "Unknown"
+
+            scored_listings.append((listing, score, restaurant_name))
     
     # Sort listings by score in descending order
     scored_listings.sort(key=lambda x: x[1], reverse=True)
@@ -48,9 +57,10 @@ def get_ml_recommendations(ngo_id):
     response = [
         {
             **listing.to_mongo().to_dict(),  # Include all listing details
-            "score": score  # Add the score
+            "score": score,  # Add the score
+            "restaurant_name": restaurant_name
         } 
-        for listing, score in scored_listings
+        for listing, score, restaurant_name in scored_listings
     ]
     
     return jsonify(response), 200

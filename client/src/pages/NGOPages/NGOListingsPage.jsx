@@ -7,6 +7,7 @@ import { useDarkMode } from '../../context/DarkModeContext';
 const NGOListingsPage = () => {
     const [selectedListings, setSelectedListings] = useState([]);
     const [restaurants, setRestaurants] = useState([]);
+    const [recommendedItems, setRecommendedItems] = useState([]);
     const { isDarkMode } = useDarkMode();
 
     const imageUrls = [
@@ -21,8 +22,6 @@ const NGOListingsPage = () => {
         "https://images.pexels.com/photos/2074130/pexels-photo-2074130.jpeg?auto=compress&cs=tinysrgb&w=600",
         "https://images.pexels.com/photos/671956/pexels-photo-671956.jpeg?auto=compress&cs=tinysrgb&w=600",
     ];
-
-    console.log(selectedListings);
 
     const { user } = useAuth();
 
@@ -53,7 +52,21 @@ const NGOListingsPage = () => {
             }
         };
 
+        const fetchRecommendations = async () => {
+            try {
+                const response = await axios.get(`http://127.0.0.1:8800/recommendations/ml`, {
+                    params: { ngo_id: user._id },
+                });
+                setRecommendedItems(response.data);
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        };
+
+        console.log(recommendedItems)
+
         fetchNearbyListings();
+        fetchRecommendations();
     }, [user]);
 
     const handleSelect = (listing) => {
@@ -64,9 +77,48 @@ const NGOListingsPage = () => {
         }
     };
 
+    const handleRecommendedItemsRequest = async () => {
+        if (recommendedItems.length === 0) {
+            alert('Please select at least one listing to request.');
+            return;
+        }
+
+        try {
+            console.log('Recommended Items: ', recommendedItems);
+
+            const listingsData = recommendedItems.map((listing) => ({
+                listing: String(listing._id),
+                name: listing.name,
+                quantity: listing.quantity,
+                expiry: listing.expiry,
+                food_type: listing.food_type,
+                restaurant_id: String(listing.restaurant_id),
+                restaurant_name: listing.restaurant_name,
+                view: 'not blocked'
+            }));
+            console.log('Listing Data: ', listingsData);
+
+            const orderData = {
+                restaurantId: String(recommendedItems[0].restaurant_id),
+                ngoId: String(user._id),
+                listings: listingsData
+            };
+
+            console.log('Order Data:', orderData);
+
+            const response = await axios.post('http://127.0.0.1:8800/orders', orderData);
+
+            if (response.status === 201) {
+                alert('Order requested successfully!');
+                setSelectedListings([]);
+            }
+        } catch (error) {
+            console.error('Error creating order:', error);
+            alert('Failed to create order. Please try again.');
+        }
+    };
+
     const handleRequest = async () => {
-        console.log('Inside handleRequest');
-        console.log('User:', user);
 
         if (selectedListings.length === 0) {
             alert('Please select at least one listing to request.');
@@ -74,7 +126,7 @@ const NGOListingsPage = () => {
         }
 
         try {
-            console.log('Selected Listings:', selectedListings);
+            console.log('Selected Listings: ', selectedListings);
 
             const listingsData = selectedListings.map((listing) => ({
                 listing: String(listing.listingId),
@@ -110,9 +162,49 @@ const NGOListingsPage = () => {
 
     return (
         <div className={`container mx-auto p-8 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+            <div className='mb-8'>
+                <h2 className={`text-md md:text-xl text-center font-bold border-2 border-gray-800 rounded-lg uppercase mb-4 ${isDarkMode ? 'text-white bg-gray-500' : 'text-black bg-gray-300'}`}>
+                    Recommendations
+                </h2>
+                <div className="flex overflow-x-auto">
+                    {recommendedItems.map((listing, idx) => (
+                        <div key={idx} className="card mr-4 md:min-w-[250px] min-w-[150px]">
+                            <img src={imageUrls[idx % 10]} alt={listing.name} className="object-cover w-full h-32 md:h-48 sm:w-auto sm:max-w-full" />
+                            <h2 className={`text-md md:text-lg font-semibold mt-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
+                                {listing.name}
+                            </h2>
+                            <div className={`mt-4 p-2 h-12 rounded-sm w-full ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-300 text-gray-600'}`}>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Quantity</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.quantity} kgs</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Food Type</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.food_type}</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Expiry</span>
+                                        <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.expiry} hr</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleSelect(listing)}
+                                className={`mt-4 p-2 text-xs md:text-md ${isDarkMode ? 'bg-blue-700' : 'bg-blue-700'} text-white rounded-md`}
+                            >
+                                {selectedListings.some((item) => item.name === listing.name) ? 'Unselect' : 'Select'}
+                            </button>
+                        </div>
+                    ))}
+                </div>
+                <button onClick={handleRecommendedItemsRequest} className={`mt-4 p-2 text-xs md:text-md bg-blue-700 text-white rounded-md ${isDarkMode ? 'w-14 h-8' : 'w-19 h-10'}`}>
+                    Request
+                </button>
+            </div>
             {Object.keys(restaurants).map((restaurantName, index) => (
                 <div key={index} className="mb-8">
-                    <h2 className={`text-md md:text-xl font-semibold uppercase mb-4 ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>
+                    <h2 className={`text-md md:text-xl text-center font-bold border-2 border-gray-800 rounded-lg uppercase mb-4 ${isDarkMode ? 'text-white bg-gray-500' : 'text-black bg-gray-300'}`}>
                         {restaurantName}
                     </h2>
                     <div className="flex overflow-x-auto">
@@ -122,19 +214,19 @@ const NGOListingsPage = () => {
                                 <h2 className={`text-md md:text-lg font-semibold mt-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                                     {listing.name}
                                 </h2>
-                                <div className={`mt-4 p-2 h-12 rounded-sm w-full ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
+                                <div className={`mt-4 p-2 h-12 rounded-sm w-full ${isDarkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-300 text-gray-600'}`}>
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="flex flex-col gap-1">
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Quantity</span>
-                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold`}>{listing.quantity} kgs</span>
+                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.quantity} kgs</span>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Food Type</span>
-                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold`}>{listing.food_type}</span>
+                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.food_type}</span>
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-semibold`}>Expiry</span>
-                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold`}>{listing.expiry} hr</span>
+                                            <span className={`${isDarkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-bold truncate`}>{listing.expiry} hr</span>
                                         </div>
                                     </div>
                                 </div>
