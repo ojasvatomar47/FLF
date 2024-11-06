@@ -49,6 +49,7 @@ from routes.user_routes import user_bp
 from routes.recommendation_routes import recommendations_bp
 from routes.graph_routes import graph_bp
 from routes.content_filtering import content_filter_bp
+from routes.sentiment_routes import sentiment_bp
 from models.chat import Chat  # Import the Chat model
 
 # Register blueprints
@@ -59,6 +60,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(recommendations_bp)
 app.register_blueprint(graph_bp)
 app.register_blueprint(content_filter_bp)
+app.register_blueprint(sentiment_bp)
 
 # Socket.IO Events
 @socketio.on('connect')
