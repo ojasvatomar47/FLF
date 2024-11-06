@@ -95,8 +95,8 @@ def get_orders_by_restaurant():
             response_data.append(order_dict)
 
             # Print the details of each fetched order
-            print("\n--- Fetched Order Details ---")
-            print(order_dict)
+            # print("\n--- Fetched Order Details ---")
+            # print(order_dict)
             
         response_data.reverse()
 
@@ -130,8 +130,8 @@ def get_orders_by_ngo():
             response_data.append(order_dict)
 
             # Print the details of each fetched order
-            print("\n--- Fetched Order Details ---")
-            print(order_dict)
+            # print("\n--- Fetched Order Details ---")
+            # print(order_dict)
             
         response_data.reverse()
 
@@ -361,19 +361,26 @@ def add_rest_review(order_id):
         # Get the review data from the request body
         data = request.get_json()
         review = data.get('review')
+        
+        print(order_id)
+        
+        if review is None:
+            return jsonify({"message": "Review content is required"}), 400
+
+        print("\n--- Restaurant Review ---")
+        print(review)
 
         # Fetch the order by order_id
         order = Order.objects.get(id=ObjectId(order_id))
 
-        if not order:
-            return jsonify({"message": "Order not found"}), 404
-
         # Check if the review for the restaurant already exists
         if order.rest_review:
+            print(order.rest_review)
             return jsonify({"message": "Review already added"}), 400
 
         # Add the restaurant review to the order
-        order.update(set__rest_review=review)
+        order.rest_review = review
+        order.save()  # Use save() to directly update the document
 
         # Return success response
         return jsonify({"message": "Review added successfully"}), 201
@@ -384,35 +391,40 @@ def add_rest_review(order_id):
         print(f"Error adding review: {e}")
         return jsonify({"message": "Server Error", "error": str(e)}), 500
 
-
 def add_ngo_review(order_id):
     try:
         # Get the review data from the request body
         data = request.get_json()
         review = data.get('review')
+        
+        print(order_id)
+        
+        if review is None:
+            return jsonify({"message": "Review content is required"}), 400
+
+        print("\n--- NGO Review ---")
+        print(review)
 
         # Fetch the order by order_id
         order = Order.objects.get(id=ObjectId(order_id))
 
-        if not order:
-            return jsonify({"message": "Order not found"}), 404
-
-        # Check if the review for the restaurant already exists
+        # Check if the review for the NGO already exists
         if order.ngo_review:
+            print(order.ngo_review)
             return jsonify({"message": "Review already added"}), 400
 
-        # Add the restaurant review to the order
-        order.update(set__ngo_review=review)
+        # Add the NGO review to the order
+        order.ngo_review = review
+        order.save()  # Use save() to directly update the document
 
         # Return success response
-        return jsonify({"message":review}), 201
+        return jsonify({"message": "Review added successfully", "review": review}), 201
 
     except Order.DoesNotExist:
         return jsonify({"message": "Order not found"}), 404
     except Exception as e:
         print(f"Error adding review: {e}")
         return jsonify({"message": "Server Error", "error": str(e)}), 500
-
 
 # Helper function to serialize MongoDB documents
 def serialize_doc(doc):

@@ -40,7 +40,7 @@ const NGOTransactionsPage = () => {
                 params: { ngo_id: user._id },
             });
             setOrders(response.data.data);
-            console.log("response data::",response)
+            console.log("response data::", response.data.data)
         } catch (error) {
             console.error('Error fetching orders:', error);
         }
@@ -83,9 +83,10 @@ const NGOTransactionsPage = () => {
             const response = await axios.post(`http://localhost:8800/addNgoReview/${selectedOrder._id}`, {
                 review: reviewText
             });
-            console.log("this is the response data",response.data.message)
+            console.log("this is the response data", response.data.message)
             setReviewMessage(response.data.message);
             setShowReviewModal(false);
+            console.log("review posted by ngo");
             fetchOrders();
         } catch (error) {
             console.error('Error posting review:', error);
@@ -98,14 +99,14 @@ const NGOTransactionsPage = () => {
     };
 
     const canReviewOrder = (order) => {
-        return (order.status === 'cancelled' || order.status === 'fulfilled') && !order.ngoReview;
+        return (order.status === 'cancelled' || order.status === 'fulfilled') && !order.ngo_review;
     };
 
     return (
         <div className={`container mx-auto p-8 pb-24 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
             {orders.map((order, index) => {
                 const canReview = canReviewOrder(order);
-                const reviewAdded = order.restReview || order.ngoReview;
+                const reviewAdded = order.rest_review || order.ngo_review;
 
                 return (
                     <div key={order._id} className={`order-card shadow-lg p-4 mb-4 flex flex-col md:flex-row items-center relative ${isDarkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 hover:bg-gray-100 transition duration-300 ease-in-out'}`}>
@@ -173,16 +174,16 @@ const NGOTransactionsPage = () => {
                                 </div>
                             )}
 
-                            {order.restReview && (
+                            {order.rest_review && (
                                 <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
                                     <p className="text-xs md:text-sm font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">Restaurant Review:</p>
-                                    <p className="text-xs md:text-sm">{order.restReview}</p>
+                                    <p className="text-xs md:text-sm">{order.rest_review}</p>
                                 </div>
                             )}
-                            {order.ngoReview && (
+                            {order.ngo_review && (
                                 <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
                                     <p className="text-xs md:text-sm font-semibold">NGO Review:</p>
-                                    <p className="text-xs md:text-sm">{order.ngoReview}</p>
+                                    <p className="text-xs md:text-sm">{order.ngo_review}</p>
                                 </div>
                             )}
 
@@ -233,7 +234,7 @@ const NGOTransactionsPage = () => {
                                 <li key={index} className="mb-2">
                                     <span className="font-semibold">Name:</span> {listing.name},
                                     <span className="ml-2 font-semibold">Quantity:</span> {listing.quantity} kgs,
-                                    <span className="ml-2 font-semibold">Food Type:</span> {listing.food_type}, 
+                                    <span className="ml-2 font-semibold">Food Type:</span> {listing.food_type},
                                     <span className="ml-2 font-semibold">Expiry:</span> {listing.expiry} hr
                                 </li>
                             ))}

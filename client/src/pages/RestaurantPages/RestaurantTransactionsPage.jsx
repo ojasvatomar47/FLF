@@ -53,7 +53,7 @@ const RestaurantTransactionsPage = () => {
   const handleAccept = async (orderId) => {
     try {
       await axios.put(`http://localhost:8800/orders/${orderId}/accept`);
-      
+
       fetchOrders();
     } catch (error) {
       console.error('Error accepting order:', error);
@@ -104,6 +104,7 @@ const RestaurantTransactionsPage = () => {
       });
       setReviewMessage(response.data.message);
       setShowReviewModal(false);
+      console.log("review posted by restaurant");
       fetchOrders();
     } catch (error) {
       console.error('Error posting review:', error);
@@ -116,14 +117,14 @@ const RestaurantTransactionsPage = () => {
   };
 
   const canReviewOrder = (order) => {
-    return (order.status === 'cancelled' || order.status === 'fulfilled') && !order.restReview;
+    return (order.status === 'cancelled' || order.status === 'fulfilled') && !order.rest_review;
   };
 
   return (
     <div className={`container mx-auto p-8 pb-24 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
       {orders.map((order, index) => {
         const canReview = canReviewOrder(order);
-        const reviewAdded = order.restReview || order.ngoReview;
+        const reviewAdded = order.rest_review || order.ngo_review;
 
         return (
           <div key={order._id} className={`order-card shadow-lg p-4 mb-4 flex flex-col md:flex-row items-center relative ${isDarkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 hover:bg-gray-100 transition duration-300 ease-in-out'}`}>
@@ -207,16 +208,16 @@ const RestaurantTransactionsPage = () => {
                 </div>
               )}
 
-              {order.restReview && (
+              {order.rest_review && (
                 <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
                   <p className="text-xs md:text-sm font-semibold">Restaurant Review:</p>
-                  <p className="text-xs md:text-sm">{order.restReview}</p>
+                  <p className="text-xs md:text-sm">{order.rest_review}</p>
                 </div>
               )}
-              {order.ngoReview && (
+              {order.ngo_review && (
                 <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
                   <p className="text-xs md:text-sm font-semibold">NGO Review:</p>
-                  <p className="text-xs md:text-sm">{order.ngoReview}</p>
+                  <p className="text-xs md:text-sm">{order.ngo_review}</p>
                 </div>
               )}
 
