@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify
-from sklearn.neighbors import NearestNeighbors
 from models.order import Order
 from models.listing import Listing
-from models.user import User  # Import User model to fetch restaurant names
+from models.user import User
 import numpy as np
 
 # Initialize Blueprint
@@ -22,6 +21,27 @@ def generate_feature_vector(listing_detail):
     quantity = listing_detail.quantity
     food_type_vector = food_type_encoding.get(listing_detail.food_type, [0, 0, 0, 1])  # Handle unknown food types
     return [expiry] + food_type_vector + [quantity]
+
+# Helper function to calculate cosine similarity
+def cosine_similarity(vector1, vector2):
+    dot_product = np.dot(vector1, vector2)
+    norm_vector1 = np.linalg.norm(vector1)
+    norm_vector2 = np.linalg.norm(vector2)
+    if norm_vector1 == 0 or norm_vector2 == 0:
+        return 0  # Avoid division by zero if any vector is zero
+    return dot_product / (norm_vector1 * norm_vector2)
+
+# Helper function to find k-nearest listings
+def get_k_nearest_listings(preference_vector, listing_vectors, k=5):
+    # Calculate similarity scores between preference vector and each listing vector
+    similarities = [(i, cosine_similarity(preference_vector, listing_vector)) 
+                    for i, listing_vector in enumerate(listing_vectors)]
+    
+    # Sort by similarity score in descending order and select the top-k listings
+    sorted_similarities = sorted(similarities, key=lambda x: x[1], reverse=True)
+    nearest_indices = [index for index, _ in sorted_similarities[:k]]
+    
+    return nearest_indices
 
 # Route for content-based filtering
 @content_filter_bp.route('/content-based-recommendations', methods=['GET'])
@@ -43,19 +63,14 @@ def content_based_recommendations():
     all_listings = list(Listing.objects())  # Convert QuerySet to list
     listing_vectors = [generate_feature_vector(listing) for listing in all_listings]
     
-    # Convert list to numpy array for k-NN
+    # Convert to numpy array for calculation
     listing_vectors_np = np.array(listing_vectors)
     
-    # Initialize k-NN model and fit with listing feature vectors
-    knn_model = NearestNeighbors(n_neighbors=5, metric='cosine')  # Adjust `n_neighbors` as needed
-    knn_model.fit(listing_vectors_np)
-
-    # Find the k-nearest listings to the NGO's preference vector
-    ngo_preference_vector_np = np.array([ngo_preference_vector])
-    distances, indices = knn_model.kneighbors(ngo_preference_vector_np)
+    # Find the k-nearest listings based on cosine similarity
+    nearest_indices = get_k_nearest_listings(ngo_preference_vector, listing_vectors_np, k=5)
 
     # Retrieve recommended listings based on indices
-    recommended_listings = [all_listings[i] for i in indices.flatten()]  # Flatten indices to get a 1D array
+    recommended_listings = [all_listings[i] for i in nearest_indices]
 
     # Format the response to include all listing details and restaurant names
     response = []

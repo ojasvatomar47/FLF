@@ -97,6 +97,8 @@ def get_orders_by_restaurant():
             # Print the details of each fetched order
             print("\n--- Fetched Order Details ---")
             print(order_dict)
+            
+        response_data.reverse()
 
         # Return JSON response with the orders inside an array
         return jsonify({
@@ -130,6 +132,8 @@ def get_orders_by_ngo():
             # Print the details of each fetched order
             print("\n--- Fetched Order Details ---")
             print(order_dict)
+            
+        response_data.reverse()
 
         # Return JSON response with the orders inside an array
         return jsonify({
