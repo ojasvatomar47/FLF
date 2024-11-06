@@ -6,7 +6,8 @@ from bson import ObjectId
 from datetime import datetime
 import random
 import string
-from models.user import User  # Import the User model
+from models.user import User  
+from utils.sentiment_analysis import analyze_sentiment
 
 def create_order():
     data = request.json
@@ -361,29 +362,30 @@ def add_rest_review(order_id):
         # Get the review data from the request body
         data = request.get_json()
         review = data.get('review')
-        
-        print(order_id)
-        
+
         if review is None:
             return jsonify({"message": "Review content is required"}), 400
 
-        print("\n--- Restaurant Review ---")
-        print(review)
+        # Analyze the sentiment of the review
+        sentiment = analyze_sentiment(review)
+
+        print("\n---SENTIMENT---")
+        print(sentiment)
 
         # Fetch the order by order_id
         order = Order.objects.get(id=ObjectId(order_id))
 
         # Check if the review for the restaurant already exists
         if order.rest_review:
-            print(order.rest_review)
             return jsonify({"message": "Review already added"}), 400
 
-        # Add the restaurant review to the order
+        # Add the restaurant review and sentiment to the order
         order.rest_review = review
-        order.save()  # Use save() to directly update the document
+        order.rest_sentiment = sentiment  # Save the sentiment
+        order.save()  # Save the order with the new review and sentiment
 
         # Return success response
-        return jsonify({"message": "Review added successfully"}), 201
+        return jsonify({"message": "Review added successfully", "sentiment": sentiment}), 201
 
     except Order.DoesNotExist:
         return jsonify({"message": "Order not found"}), 404
@@ -396,36 +398,41 @@ def add_ngo_review(order_id):
         # Get the review data from the request body
         data = request.get_json()
         review = data.get('review')
-        
-        print(order_id)
-        
+
         if review is None:
             return jsonify({"message": "Review content is required"}), 400
 
-        print("\n--- NGO Review ---")
-        print(review)
+        # Analyze the sentiment of the review
+        sentiment = analyze_sentiment(review)
+        
+        print("\n---SENTIMENT---")
+        print(sentiment)
+        
+        if sentiment not in ['Positive', 'Negative']:
+            return jsonify({"message": "Sentiment must be either 'Positive' or 'Negative'."}), 400
 
         # Fetch the order by order_id
         order = Order.objects.get(id=ObjectId(order_id))
 
         # Check if the review for the NGO already exists
         if order.ngo_review:
-            print(order.ngo_review)
             return jsonify({"message": "Review already added"}), 400
 
-        # Add the NGO review to the order
+        # Add the NGO review and sentiment to the order
         order.ngo_review = review
-        order.save()  # Use save() to directly update the document
+        order.ngo_sentiment = sentiment  # Save the sentiment
+        order.save()  # Save the order with the new review and sentiment
 
         # Return success response
-        return jsonify({"message": "Review added successfully", "review": review}), 201
+        return jsonify({"message": "Review added successfully", "sentiment": sentiment}), 201
 
     except Order.DoesNotExist:
         return jsonify({"message": "Order not found"}), 404
     except Exception as e:
         print(f"Error adding review: {e}")
         return jsonify({"message": "Server Error", "error": str(e)}), 500
-
+    
+    
 # Helper function to serialize MongoDB documents
 def serialize_doc(doc):
     if isinstance(doc, dict):

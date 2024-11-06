@@ -175,14 +175,29 @@ const NGOTransactionsPage = () => {
                             )}
 
                             {order.rest_review && (
-                                <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
+                                <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'} relative`}>
+                                    {/* Display sentiment label only if reviewSentiment is not an empty string */}
+                                    {order.rest_sentiment && (
+                                        <span className={`absolute top-2 right-2 text-xs font-semibold ${order.rest_sentiment === 'Positive' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'} p-1 rounded-md`}>
+                                            {order.rest_sentiment}
+                                        </span>
+                                    )}
+
                                     <p className="text-xs md:text-sm font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">Restaurant Review:</p>
                                     <p className="text-xs md:text-sm">{order.rest_review}</p>
                                 </div>
                             )}
+
                             {order.ngo_review && (
-                                <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'}`}>
-                                    <p className="text-xs md:text-sm font-semibold">NGO Review:</p>
+                                <div className={`bg-gray-100 p-2 md:p-4 rounded-md mt-2 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500 transition duration-300 ease-in-out' : 'hover:bg-gray-200 transition duration-300 ease-in-out'} relative`}>
+                                    {/* Display sentiment label only if reviewSentiment is not an empty string */}
+                                    {order.ngo_sentiment && (
+                                        <span className={`absolute top-2 right-2 text-xs font-semibold ${order.ngo_sentiment === 'Positive' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'} p-1 rounded-md`}>
+                                            {order.ngo_sentiment}
+                                        </span>
+                                    )}
+
+                                    <p className="text-xs md:text-sm font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">NGO Review:</p>
                                     <p className="text-xs md:text-sm">{order.ngo_review}</p>
                                 </div>
                             )}

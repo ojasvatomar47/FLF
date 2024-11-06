@@ -23,6 +23,8 @@ class Order(Document):
     ngo_code = StringField()
     rest_review = StringField(default='')
     ngo_review = StringField(default='')
+    rest_sentiment = StringField(default='')
+    ngo_sentiment = StringField(default='')
     created_at = DateTimeField(default=datetime.utcnow)
 
     meta = {
