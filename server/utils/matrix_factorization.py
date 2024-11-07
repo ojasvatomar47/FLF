@@ -25,14 +25,14 @@ def svd_scratch(matrix, n_components=2, n_iter=100):
         
         for _ in range(n_iter):
             # Apply matrix operations for power method
-            vec = matrix.T @ (matrix @ vec)
-            vec /= np.linalg.norm(vec)
+            vec = matrix.T @ (matrix @ vec) # 1st: how well vec represents data and 2nd: align vec with the strongest pattern in the data
+            vec /= np.linalg.norm(vec) # makes sure vec has a consistent size after each update to match the data better
         
         # Singular value and corresponding singular vectors
-        sigma = np.linalg.norm(matrix @ vec)
-        U[:, i] = (matrix @ vec) / sigma
-        S[i] = sigma
-        V[i, :] = vec
+        sigma = np.linalg.norm(matrix @ vec) #  "strength" of this pattern. larger sigma is, the more this pattern explains the data
+        U[:, i] = (matrix @ vec) / sigma # This vector shows how strongly each NGO is related to this pattern.
+        S[i] = sigma # This tells us how important this pattern is compared to others.
+        V[i, :] = vec # This vector shows how strongly each food type relates to this pattern.
     
     # Reconstruct the matrix using the top n_components
     reconstructed_matrix = U @ np.diag(S) @ V
