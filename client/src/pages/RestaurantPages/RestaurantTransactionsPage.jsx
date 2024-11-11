@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import CardImage from '../../assets/food-link-card-img.jpg';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../../context/DarkModeContext';
+import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const RestaurantTransactionsPage = () => {
   const { user } = useAuth();
@@ -20,6 +22,10 @@ const RestaurantTransactionsPage = () => {
   const [reviewText, setReviewText] = useState('');
   const [reviewMessage, setReviewMessage] = useState('');
   const { isDarkMode } = useDarkMode();
+  const [routeData, setRouteData] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [cachedRoutes, setCachedRoutes] = useState({});
 
   const imageUrls = [
     "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=600",
@@ -110,7 +116,100 @@ const RestaurantTransactionsPage = () => {
       console.error('Error posting review:', error);
     }
   };
-
+  const handleDirectionsClick = (ngoId) => {
+    // Check if user data contains latitude and longitude
+    if (user && user.latitude && user.longitude) {
+      const latitude = user.latitude;
+      const longitude = user.longitude;
+  
+      // Log the latitude and longitude of the user
+      console.log('User Latitude:', latitude);
+      console.log('User Longitude:', longitude);
+  
+      // Get the NGO data from the clicked order
+    //  const ngoId = orders[0]?.ngo_id;  // Assuming 'order' is the clicked card
+  
+      if (ngoId) {
+        if (cachedRoutes[ngoId]) {
+          setRouteData(cachedRoutes[ngoId]);
+          setShowMap(true);
+        }
+          else{
+  
+          
+        setLoading(true);
+        // Make the API request to the backend using Axios
+        axios.get(`http://127.0.0.1:8800/ngo/profile/${ngoId}`)
+          .then((response) => {
+            // Assuming the response contains the NGO's location data in the format { latitude, longitude }
+            const ngoData = response.data;
+  
+            if (ngoData && ngoData.latitude && ngoData.longitude) {
+              const ngoLatitude = ngoData.latitude;
+              const ngoLongitude = ngoData.longitude;
+  
+              // Log the NGO's latitude and longitude
+              console.log('NGO Latitude:', ngoLatitude);
+              console.log('NGO Longitude:', ngoLongitude);
+  
+              // Make the API request to calculate the route
+              axios.post('/calculate_route', {
+                origin_latitude: latitude,  // Restaurant's latitude
+                origin_longitude: longitude, // Restaurant's longitude
+                destination_latitude: ngoLatitude, // NGO's latitude
+                destination_longitude: ngoLongitude // NGO's longitude
+              })
+                .then((routeResponse) => {
+                  // Log the response from the route calculation API
+                  console.log("Route Response:", routeResponse.data);
+                  setRouteData(routeResponse.data); 
+                  setCachedRoutes(prev => ({ ...prev, [ngoId]: routeData }));
+                  setShowMap(true); 
+                  setLoading(false);
+                  const routeData = routeResponse.data;
+                  
+                  if (routeData) {
+                    // Log the route and the optimal meeting point
+                    console.log('Route Coordinates:', routeData.route);
+                    console.log('Optimal Meeting Point:', routeData.optimal_meeting_point);
+  
+                    // Optionally, display the route and meeting point in an alert or UI
+                    // alert(`Route calculated!\nMeeting point: ${JSON.stringify(routeData.optimal_meeting_point)}`);
+                  } else {
+                    alert('Error calculating route.');
+                    setLoading(false); 
+                  }
+                })
+                .catch((error) => {
+                  console.error('Error calculating route:', error);
+                  alert('Error calculating route.');
+                  setLoading(false); 
+                });
+  
+            } else {
+              alert('NGO location data is unavailable.');
+              setLoading(false); 
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching NGO data:', error);
+            alert('Error fetching NGO data.');
+            setLoading(false); 
+          });
+        }
+      } else {
+        alert('NGO ID is missing.');
+      }
+    } else {
+      alert('User location information is unavailable.');
+    }
+  };
+  
+  const handleCloseMap = () => {
+    setShowMap(false);
+  };
+  
+    
   const handleViewListings = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
@@ -122,12 +221,52 @@ const RestaurantTransactionsPage = () => {
 
   return (
     <div className={`container mx-auto p-8 pb-24 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+   
+    {loading && (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="loader">Loading...</div>
+      </div>
+    )}
+    {showMap && routeData && (
+      <div className="relative mt-4">
+        <button
+          onClick={() => setShowMap(false)}
+          className="absolute top-2 right-2 z-20 bg-red-500 text-white p-2 rounded"
+        >
+          &#x2715;
+        </button>
+        <div className="relative z-10">
+          <MapContainer center={routeData.route[0]} zoom={13} style={{ height: '300px', width: '100%' }}>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+            />
+            <Polyline positions={routeData.route} color="blue" />
+            <Marker position={routeData.route[0]}>
+              <Popup>Restaurant (Origin)</Popup>
+            </Marker>
+            <Marker position={routeData.route[routeData.route.length - 1]}>
+              <Popup>NGO (Destination)</Popup>
+            </Marker>
+            <Marker position={routeData.optimal_meeting_point}>
+              <Popup>Optimal Meeting Point</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      </div>
+)}
       {orders.map((order, index) => {
         const canReview = canReviewOrder(order);
-        const reviewAdded = order.rest_review || order.ngo_review;
+        const reviewAdded = order.restReview || order.ngoReview;
 
         return (
           <div key={order._id} className={`order-card shadow-lg p-4 mb-4 flex flex-col md:flex-row items-center relative ${isDarkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 hover:bg-gray-100 transition duration-300 ease-in-out'}`}>
+            <button
+         onClick={() => handleDirectionsClick(order.ngo_id)}
+        className="bg-blue-500 text-white font-semibold py-2 px-4 rounded mb-4"
+      >
+        Directions
+      </button>
             <div
               className={`absolute top-0 right-0 mt-2 mr-2 text-white font-semibold py-1 px-2 capitalize rounded 
                 ${order.status === 'requested' ? 'bg-yellow-500'

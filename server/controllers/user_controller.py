@@ -25,6 +25,8 @@ def get_ngo_info(id):
             "email": ngo.email,
             "location_name": ngo.location_name,
             "total_orders": total_orders,
+            "latitude":ngo.latitude,
+            "longitude":ngo.longitude,
             "cancelled_orders": cancelled_orders,
             "fulfilled_orders": fulfilled_orders,
             "dismissed_orders": dismissed_orders,

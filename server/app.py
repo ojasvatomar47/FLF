@@ -7,6 +7,8 @@ import json
 from bson import ObjectId
 from dotenv import load_dotenv
 import os
+import osmnx as ox
+import networkx as nx
 
 # Load environment variables
 load_dotenv()
@@ -50,6 +52,7 @@ from routes.recommendation_routes import recommendations_bp
 from routes.graph_routes import graph_bp
 from routes.content_filtering import content_filter_bp
 from routes.sentiment_routes import sentiment_bp
+from routes.route_routes import route_bp 
 from models.chat import Chat  # Import the Chat model
 
 # Register blueprints
@@ -61,6 +64,7 @@ app.register_blueprint(recommendations_bp)
 app.register_blueprint(graph_bp)
 app.register_blueprint(content_filter_bp)
 app.register_blueprint(sentiment_bp)
+app.register_blueprint(route_bp)
 
 # Socket.IO Events
 @socketio.on('connect')
@@ -93,4 +97,5 @@ def handle_disconnect():
 
 # Run the app with SocketIO
 if __name__ == '__main__':
+    ox.config(log_file='osmnx.log', log_console=True, use_cache=True) 
     socketio.run(app, host='0.0.0.0', port=int(os.getenv('PORT', 8800)), debug=True)
